@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>FusionOS Vision 4.7</title>
+
+  <!-- Dependências -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+    :root {
+      --accent: #38bdf8;
+      --accent-glow: rgba(56, 189, 248, 0.4);
+      --bg-dark: #000000;
+      --glass: rgba(15, 15, 18, 0.8);
+    }
+
+    body {
+      background: var(--bg-dark);
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      margin: 0;
+      overflow-x: hidden;
+      background-image: radial-gradient(circle at 50% -20%, #1a1a2e 0%, #000 70%);
+      background-attachment: fixed;
+    }
+
+    /* Scrollbar Minimalista */
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 10px; }
+
+    /* MONOLITH (O Painel Central) */
+    #monolith {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      background: rgba(0, 0, 0, 0.4);
+      backdrop-filter: blur(60px) saturate(150%);
+      -webkit-backdrop-filter: blur(60px) saturate(150%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(1.05);
+      transition: all 0.5s cubic-bezier(0.19, 1, 0.22, 1);
+      padding: 20px;
+    }
+    #monolith.open {
+      opacity: 1;
+      pointer-events: all;
+      transform: scale(1);
+    }
+
+    .monolith-content {
+      width: 100%;
+      max-width: 1000px;
+      height: 85vh;
+      background: var(--glass);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 40px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+      position: relative;
+    }
+
+    /* TABS & NAVIGATION */
+    .tab-btn {
+      width: 48px; height: 48px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 14px;
+      color: rgba(255,255,255,0.3);
+      transition: all 0.3s;
+      background: transparent;
+      border: 1px solid transparent;
+    }
+    .tab-btn.active {
+      color: var(--accent);
+      background: rgba(56, 189, 248, 0.1);
+      border-color: rgba(56, 189, 248, 0.2);
+    }
+
+    /* APP ACCORDION */
+    .app-card {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.05);
+      border-radius: 20px;
+      margin-bottom: 12px;
+      overflow: hidden;
+      transition: all 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+    }
+    .app-card.expanded {
+      background: rgba(255,255,255,0.05);
+      border-color: rgba(56, 189, 248, 0.3);
+      transform: scale(1.01);
+    }
+
+    /* ORB (GATILHO) */
+    .fusion-orb {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 64px;
+      height: 64px;
+      z-index: 100;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .orb-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 2px solid transparent;
+      border-top-color: var(--accent);
+      border-bottom-color: #bd00ff;
+      animation: spin 3s linear infinite;
+      opacity: 0.5;
+    }
+    .orb-core {
+      width: 12px; height: 12px;
+      background: #fff;
+      border-radius: 50%;
+      box-shadow: 0 0 20px #fff;
+      transition: all 0.4s;
+    }
+    .fusion-orb:hover .orb-core { transform: scale(1.3); box-shadow: 0 0 30px var(--accent); }
+    
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* FUSION LAYER (FULLSCREEN INJECTION) */
+    #fusion-layer {
+      position: fixed;
+      inset: 0;
+      background: #000;
+      z-index: 1000;
+      display: none;
+    }
+    #fusion-layer.active { display: block; }
+
+    /* BOTÃO DE SAÍDA DISCRETO */
+    .exit-fusion-btn {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 40px; height: 40px;
+      background: rgba(0,0,0,0.5);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      color: #ff4d4d;
+      cursor: pointer;
+      z-index: 1001;
+      opacity: 0.3;
+      transition: opacity 0.3s;
+    }
+    .exit-fusion-btn:hover { opacity: 1; background: rgba(0,0,0,0.8); }
+
+    /* DOCK STEALTH INTERNO */
+    .stealth-dock {
+      opacity: 0.3;
+      transition: opacity 0.3s;
+    }
+    .stealth-dock:hover { opacity: 1; }
+
+  </style>
+</head>
+<body>
+
+  <!-- LAYER DE FUSÃO (Executa Apps) -->
+  <div id="fusion-layer"></div>
+  <button id="exit-fusion" class="exit-fusion-btn" onclick="FusionOS.exitFusion()">
+    <i data-lucide="x" width="18"></i>
+  </button>
+
+  <!-- BACKGROUND GLOW -->
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+    <div class="absolute top-[-10%] left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-sky-500/10 blur-[120px] rounded-full"></div>
+  </div>
+
+  <!-- FEED PRINCIPAL (VISÃO GERAL) -->
+  <div id="fusion-viewport" class="max-w-4xl mx-auto pt-24 px-6 pb-40">
+      <div id="active-feed" class="space-y-6">
+          <!-- Apps minimizados/cards aparecem aqui -->
+      </div>
+  </div>
+
+  <!-- MONOLITH (DASHBOARD) -->
+  <div id="monolith" onclick="if(event.target===this) FusionOS.toggleMonolith()">
+    <div class="monolith-content" onclick="event.stopPropagation()">
+      
+      <!-- Header -->
+      <header class="h-24 flex items-center justify-between px-10 border-b border-white/5 bg-black/20">
+          <div class="flex gap-4">
+              <button onclick="FusionOS.setTab('dash')" id="tab-dash" class="tab-btn active"><i data-lucide="layout-dashboard" width="20"></i></button>
+              <button onclick="FusionOS.setTab('apps')" id="tab-apps" class="tab-btn"><i data-lucide="layers" width="20"></i></button>
+              <button onclick="FusionOS.setTab('lab')" id="tab-lab" class="tab-btn"><i data-lucide="beaker" width="20"></i></button>
+          </div>
+          
+          <div class="text-center">
+              <div id="sys-name" class="text-[9px] font-black tracking-[0.4em] text-white/30 uppercase">SINGULARITY</div>
+              <div id="current-tab-label" class="text-[10px] text-sky-400 font-mono font-bold tracking-widest mt-1">DASHBOARD</div>
+          </div>
+
+          <div class="flex items-center gap-4">
+              <div class="text-right hidden md:block">
+                  <div class="text-[8px] text-white/20 uppercase font-bold tracking-tighter">Operador</div>
+                  <div id="user-display" class="text-[10px] text-sky-400 font-mono font-bold uppercase">VISITANTE</div>
+              </div>
+              <button onclick="FusionOS.toggleMonolith()" class="w-10 h-10 rounded-full border border-white/5 flex items-center justify-center text-white/40 hover:text-white transition">
+                  <i data-lucide="power" width="16"></i>
+              </button>
+          </div>
+      </header>
+
+      <!-- Content Area -->
+      <main id="monolith-main" class="flex-1 overflow-y-auto p-10 custom-scroll">
+          <!-- Dinâmico -->
+      </main>
+
+      <!-- Footer Dock (Stealth) -->
+      <footer class="h-16 border-t border-white/5 bg-black/40 flex items-center justify-center gap-8 stealth-dock">
+          <button onclick="FusionOS.Botinot.say('Sistemas Operacionais')" class="text-[9px] font-bold text-white/30 hover:text-white uppercase tracking-widest">Status</button>
+          <button onclick="FusionOS.expandAll()" class="text-[9px] font-bold text-white/30 hover:text-white uppercase tracking-widest">Expandir Tudo</button>
+          <button onclick="FusionOS.reset()" class="text-[9px] font-bold text-red-500/40 hover:text-red-500 uppercase tracking-widest">Hard Reset</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ORB -->
+  <div class="fusion-orb" onclick="FusionOS.toggleMonolith()">
+    <div class="orb-ring"></div>
+    <div class="orb-core"></div>
+  </div>
+
+  <script>
+    const FusionOS = (() => {
+      const CONFIG = {
+        storageKey: 'fusion_os_v47_state',
+        appsKey: 'fusion_os_v47_apps'
+      };
+
+      // Built-ins do seu Kernel
+      const BUILTINS = {
+        'OIDUAL': { name: '💬 OiDual 💬', url: 'https://kodux78k.github.io/oiDual-dip/' },
+        'VIVIVI': { name: '🧬 Vivivi System 🆔', url: 'https://kodux78k.github.io/oiDual-Vivivi-1/' },
+        'DELTA': { name: '🌐 Delta Hub 🔘', url: 'https://kodux78k.github.io/DualInfodose-VirgemHuB/index.html' },
+        'KXT': { name: 'Kxt', url: 'https://kodux78k.github.io/oiDual-diib/Kxt-di.html' },
+        'PORTAL': { name: 'PORTAL', url: 'https://kodux78k.github.io/PortalDual/index.html' }
+      };
+
+      let _state = {
+          user: 'Visitante',
+          system: 'Singularity',
+          installed: [],
+          activeTab: 'dash',
+          expandedId: null
+      };
+
+      const Utils = {
+          save: () => {
+              localStorage.setItem(CONFIG.appsKey, JSON.stringify(_state.installed));
+          },
+          load: () => {
+              // 1. Ler Identidade do seu localstorage existente
+              _state.user = localStorage.getItem('di_userName') || 'Operador';
+              _state.system = localStorage.getItem('di_infodoseName') || 'Fusion';
+              
+              // 2. Carregar Apps
+              const saved = localStorage.getItem(CONFIG.appsKey);
+              if (saved) _state.installed = JSON.parse(saved);
+              else _state.installed = [BUILTINS['DELTA']];
+          }
+      };
+
+      const Renderer = {
+          dash: () => {
+              return `
+                <div class="flex flex-col items-center justify-center h-full text-center">
+                    <div class="w-24 h-24 rounded-3xl bg-gradient-to-br from-sky-500/20 to-purple-500/20 border border-white/10 flex items-center justify-center mb-6 shadow-2xl">
+                        <i data-lucide="user" class="text-sky-400" width="40"></i>
+                    </div>
+                    <h2 class="text-3xl font-black tracking-tight mb-2">Bem vindo, <span class="text-sky-400">${_state.user}</span></h2>
+                    <p class="text-white/40 text-sm font-mono tracking-widest uppercase mb-10">Módulo ${_state.system} Ativo</p>
+                    
+                    <div class="w-full max-w-md relative group">
+                        <div class="absolute -inset-1 bg-gradient-to-r from-sky-500 to-purple-500 rounded-2xl blur opacity-10 group-focus-within:opacity-30 transition"></div>
+                        <input type="text" id="term-input" 
+                            class="w-full bg-black/60 border border-white/10 rounded-2xl p-5 text-center font-mono text-sm tracking-widest focus:outline-none focus:border-sky-500/50 uppercase"
+                            placeholder="INSIRA CODE MAP OU COMANDO..."
+                            onkeydown="if(event.key==='Enter') FusionOS.runCommand(this.value)">
+                    </div>
+                </div>
+              `;
+          },
+          apps: () => {
+              return `
+                <div class="space-y-4">
+                    <h2 class="text-[10px] font-bold text-white/30 uppercase tracking-[0.3em] mb-6">Módulos Instalados</h2>
+                    ${_state.installed.map(app => `
+                        <div class="app-card ${_state.expandedId === app.name ? 'expanded' : ''}" id="app-${app.name}">
+                            <div class="p-5 flex items-center justify-between cursor-pointer" onclick="FusionOS.toggleApp('${app.name}')">
+                                <div class="flex items-center gap-4">
+                                    <div class="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-sky-400">
+                                        <i data-lucide="box" width="18"></i>
+                                    </div>
+                                    <span class="text-sm font-bold tracking-wide">${app.name}</span>
+                                </div>
+                                <i data-lucide="chevron-down" class="text-white/20" width="16"></i>
+                            </div>
+                            <div class="px-5 pb-5 grid grid-cols-2 gap-3">
+                                <button onclick="FusionOS.launch('${app.name}', 'window')" class="bg-white/5 hover:bg-white/10 p-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition">Modo Janela</button>
+                                <button onclick="FusionOS.launch('${app.name}', 'fusion')" class="bg-sky-500/20 hover:bg-sky-500 text-sky-400 hover:text-black p-3 rounded-xl text-[10px] font-bold uppercase tracking-widest transition">Iniciar Fusão</button>
+                                <button onclick="FusionOS.uninstall('${app.name}')" class="col-span-2 text-red-500/40 hover:text-red-500 text-[8px] uppercase font-bold pt-2">Remover Módulo</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+              `;
+          },
+          lab: () => {
+              return `
+                <div class="h-full flex flex-col gap-6">
+                    <div class="bg-white/5 p-6 rounded-3xl border border-white/5">
+                        <h3 class="text-xs font-bold text-sky-400 uppercase tracking-widest mb-4">Kernel Converter</h3>
+                        <textarea id="lab-input" placeholder="Cole o código HTML aqui..." class="w-full h-32 bg-black/40 border border-white/10 rounded-xl p-4 text-[10px] font-mono text-white/60 focus:outline-none"></textarea>
+                        <button onclick="FusionOS.labInject()" class="mt-4 w-full bg-sky-500/20 hover:bg-sky-500 text-sky-400 hover:text-black font-bold py-3 rounded-xl uppercase text-[10px] tracking-widest transition">Injetar no Kernel</button>
+                    </div>
+                </div>
+              `;
+          }
+      };
+
+      return {
+          init: () => {
+              Utils.load();
+              FusionOS.setTab('dash');
+              lucide.createIcons();
+              document.getElementById('user-display').innerText = _state.user;
+              document.getElementById('sys-name').innerText = _state.system;
+          },
+
+          toggleMonolith: () => {
+              const el = document.getElementById('monolith');
+              el.classList.toggle('open');
+          },
+
+          setTab: (tab) => {
+              _state.activeTab = tab;
+              document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+              document.getElementById(`tab-${tab}`).classList.add('active');
+              
+              const labelMap = { dash: 'DASHBOARD', apps: 'MODULES', lab: 'SYSTEM LAB' };
+              document.getElementById('current-tab-label').innerText = labelMap[tab];
+              
+              document.getElementById('monolith-main').innerHTML = Renderer[tab]();
+              lucide.createIcons();
+          },
+
+          runCommand: (cmd) => {
+              cmd = cmd.trim().toUpperCase();
+              if (BUILTINS[cmd]) {
+                  if (!_state.installed.find(a => a.name === BUILTINS[cmd].name)) {
+                      _state.installed.unshift(BUILTINS[cmd]);
+                      Utils.save();
+                      FusionOS.Botinot.say(`Módulo ${cmd} Instalado`, 'success');
+                  }
+                  FusionOS.setTab('apps');
+              } else if (cmd === 'RESET') {
+                  FusionOS.reset();
+              } else {
+                  FusionOS.Botinot.say('Comando Inválido', 'error');
+              }
+          },
+
+          toggleApp: (id) => {
+              _state.expandedId = _state.expandedId === id ? null : id;
+              FusionOS.setTab('apps');
+          },
+
+          launch: (name, mode) => {
+              const app = _state.installed.find(a => a.name === name);
+              if (!app) return;
+
+              if (mode === 'fusion') {
+                  const layer = document.getElementById('fusion-layer');
+                  layer.innerHTML = `<iframe src="${app.url}" class="w-full h-full border-none"></iframe>`;
+                  layer.classList.add('active');
+                  document.getElementById('exit-fusion').style.display = 'flex';
+                  FusionOS.toggleMonolith();
+              } else {
+                  // Modo Janela no Feed principal
+                  const feed = document.getElementById('active-feed');
+                  const card = document.createElement('div');
+                  card.className = "bg-black/80 backdrop-blur-3xl border border-white/10 rounded-[32px] overflow-hidden shadow-2xl animate-fade-in";
+                  card.innerHTML = `
+                    <div class="p-4 flex justify-between items-center bg-white/5">
+                        <span class="text-[10px] font-bold tracking-widest uppercase text-white/40">${name}</span>
+                        <button onclick="this.parentElement.parentElement.remove()" class="text-white/20 hover:text-red-500 transition"><i data-lucide="x" width="14"></i></button>
+                    </div>
+                    <iframe src="${app.url}" class="w-full h-[500px] border-none"></iframe>
+                  `;
+                  feed.prepend(card);
+                  lucide.createIcons();
+                  FusionOS.toggleMonolith();
+              }
+          },
+
+          exitFusion: () => {
+              const layer = document.getElementById('fusion-layer');
+              layer.innerHTML = '';
+              layer.classList.remove('active');
+              document.getElementById('exit-fusion').style.display = 'none';
+          },
+
+          labInject: () => {
+              const html = document.getElementById('lab-input').value;
+              if(!html) return;
+              const newApp = {
+                  name: 'LAB_' + Date.now(),
+                  url: 'data:text/html;base64,' + btoa(html)
+              };
+              _state.installed.unshift(newApp);
+              Utils.save();
+              FusionOS.setTab('apps');
+              FusionOS.Botinot.say("Injetado com Sucesso");
+          },
+
+          uninstall: (name) => {
+              _state.installed = _state.installed.filter(a => a.name !== name);
+              Utils.save();
+              FusionOS.setTab('apps');
+          },
+
+          reset: () => {
+              if(confirm("Deseja formatar o sistema?")) {
+                  localStorage.removeItem(CONFIG.appsKey);
+                  location.reload();
+              }
+          },
+
+          Botinot: {
+              say: (msg, type='info') => {
+                  console.log(`[BOTINOT]: ${msg}`);
+                  // Aqui você pode adicionar um toast se quiser
+              }
+          }
+      };
+    })();
+
+    window.onload = FusionOS.init;
+  </script>
+</body>
+</html>
+
