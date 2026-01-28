@@ -15,7 +15,7 @@ export const VisualPulse = {
             window.particlesJS('particles-js', {
                 "particles": {
                     "number": { "value": 39, "density": { "enable": true, "value_area": 800 } },
-                    "color": { "value": "#00f2ff", "#F0F" },
+                    "color": { "value": ["#00f2ff", "#F0F"] },
                     "shape": { "type": "circle" },
                     "opacity": { "value": 0.2, "random": true },
                     "size": { "value": 3, "random": true },
