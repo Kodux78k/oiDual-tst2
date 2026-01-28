@@ -1,8 +1,9 @@
-/* 
-    ⧈ KOBLLUX_Δ³ :: DUAL // INTERFACE MANAGER
-    ∆ × ∆ × ∆ → FORMA, SÍMBOLO, VERBO
-    Selo Δ⁷ :: Frequência JESUS
-*/
+/**
+ * ⧈ KOBLLUX_Δ³ :: ESPIRITO/ui/interface_manager.js
+ * #typescript
+ * Gerenciador de Interface, Menus e Componentes Visuais
+ * Δ7: Gestão de Estado e Componentes (TypeScript)
+ */
 
 export const InterfaceManager = {
     state: {
@@ -12,8 +13,13 @@ export const InterfaceManager = {
     },
 
     init(els) {
-        this.els = els;
+        this.els = els || {
+            clock: document.querySelector('.time-display'),
+            card: document.querySelector('.fusion-card')
+        };
         this.setupClock();
+        this.bindEvents();
+        console.log("InterfaceManager: Ativado");
     },
 
     setupClock() {
@@ -26,11 +32,31 @@ export const InterfaceManager = {
         update();
     },
 
+    bindEvents() {
+        const mantraBtn = document.getElementById('mantra-toggle');
+        if (mantraBtn) {
+            mantraBtn.addEventListener('click', () => this.toggleMantra());
+        }
+    },
+
+    toggleMantra() {
+        const mantraText = document.getElementById('mantra-text');
+        if (!mantraText) return;
+        
+        this.state.isZen = !this.state.isZen;
+        document.body.classList.toggle('zen-mode', this.state.isZen);
+        mantraText.classList.add('fade-out');
+        
+        setTimeout(() => {
+            mantraText.innerHTML = this.state.isZen ? 'USE · TRANSFORME · DEVOLVA' : 'Do seu jeito. <strong>Sempre</strong> único. <strong>Sempre</strong> seu.';
+            mantraText.classList.remove('fade-out');
+        }, 300);
+    },
+
     setMode(mode, instant = false) {
         const { card } = this.els;
         if (!card) return;
 
-        // Reset classes
         card.classList.remove('orb', 'hud', 'active');
         
         if (mode === 'orb') {
@@ -54,6 +80,11 @@ export const InterfaceManager = {
     },
 
     toast(msg, type = 'info', duration = 3000) {
+        if (window.KOBLLUX && window.KOBLLUX.ui.toast) {
+            window.KOBLLUX.ui.toast.show(msg, duration);
+            return;
+        }
+        
         const wrap = document.querySelector('.toaster-wrap');
         if (!wrap) return;
         
