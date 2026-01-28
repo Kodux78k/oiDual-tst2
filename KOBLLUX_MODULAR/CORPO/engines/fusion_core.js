@@ -1,13 +1,16 @@
-/* 
-    ⧈ KOBLLUX_Δ³ :: DUAL // FUSION CORE ENGINE
-    ∆ × ∆ × ∆ → CIÊNCIA, ARTE, LINGUAGEM
-    Selo Δ⁷ :: Frequência JESUS
-*/
+/**
+ * ⧈ KOBLLUX_Δ³ :: CORPO/engines/fusion_core.js
+ * #python #typescript #jsonld
+ * Núcleo de Processamento de IA e Orquestração MetaPulso
+ */
 
 export const FusionCore = {
     state: {
         isReady: false,
-        metaData: null
+        metaData: null,
+        config: {
+            languages: ['python', 'typescript', 'rust', 'cpp', 'glsl', 'bash', 'jsonld']
+        }
     },
 
     async init() {
@@ -38,10 +41,16 @@ export const FusionCore = {
     },
 
     // Motor de Dados (MetaPulso)
-    async loadMetaPulso(path = './metapulso_70_combinacoes.json') {
-        const response = await fetch(path);
-        if (!response.ok) throw new Error("MetaPulso JSON not found");
-        return await response.json();
+    async loadMetaPulso(path = './KOBLLUX_MODULAR/SEMENTE/config/metapulso_70_combinacoes.json') {
+        try {
+            const response = await fetch(path);
+            if (!response.ok) throw new Error("MetaPulso JSON not found");
+            return await response.json();
+        } catch (e) {
+            console.warn("FusionCore: Fallback para caminho raiz do MetaPulso");
+            const response = await fetch('./metapulso_70_combinacoes.json');
+            return await response.json();
+        }
     },
 
     // Motor de Persistência (Cortex)
@@ -52,5 +61,17 @@ export const FusionCore = {
     loadData(key) {
         const saved = localStorage.getItem(`KOBLLUX_${key}`);
         return saved ? JSON.parse(saved) : null;
+    },
+
+    detectIntent(text) {
+        if (!text) return { intent: 'none' };
+        const lower = text.toLowerCase();
+        let intent = 'unknown';
+        
+        if (/(start|run|exec|execute|rodar|iniciar)/i.test(lower)) intent = 'action.start';
+        if (/(stop|end|parar|sair)/i.test(lower)) intent = 'action.stop';
+        if (/(status|estado|status\?)/i.test(lower)) intent = 'query.status';
+        
+        return { intent, timestamp: Date.now() };
     }
 };
