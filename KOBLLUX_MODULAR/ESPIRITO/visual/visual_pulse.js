@@ -23,7 +23,7 @@ export const VisualPulse = {
                 opacity: { value: 0.4 },
                 size: { value: 2.4 },
                 move: { enable: true, speed: 1.5 },
-                line_linked: { enable: true, color: '#0ff' }
+                line_linked: { enable: true, color: '#FFF' }
             },
             retina_detect: true
         });
