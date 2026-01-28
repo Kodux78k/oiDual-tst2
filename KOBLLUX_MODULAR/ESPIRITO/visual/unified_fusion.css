@@ -1,0 +1,52 @@
+/**
+ * ⧈ KOBLLUX_Δ³ :: ESPIRITO/visual/unified_fusion.css
+ * #glsl
+ * Estética Vibracional Unificada
+ */
+
+:root {
+  --bg-deep: #030406;
+  --bg-gradient: linear-gradient(180deg,#000,#111);
+  --text: #d7d7d7;
+  --neon-cyan: #00f2ff;
+  --neon-purple: #bd00ff;
+  --neon-gold: #ffd700;
+  --neon-danger: #ff2a6d;
+  --neon-success: #00ff9d;
+  --glass-surface: rgba(18,18,22,0.65);
+  --glass-border: rgba(255,255,255,0.06);
+  --active-color: var(--neon-cyan);
+  --active-glow: rgba(0, 242, 255, 0.1);
+}
+
+/* Base Styles */
+body {
+  background: var(--bg-deep);
+  color: var(--text);
+  font-family: 'Montserrat', sans-serif;
+  margin: 0;
+  overflow: hidden;
+}
+
+/* Unified Glass Card */
+.glass-card {
+  background: var(--glass-surface);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+
+/* MetaPulso Animations */
+@keyframes breathe {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50% { opacity: 0.6; transform: scale(1.05); }
+}
+
+.ambient-glow {
+  position: fixed;
+  filter: blur(120px);
+  z-index: -1;
+  animation: breathe 5s ease-in-out infinite;
+}
