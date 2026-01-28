@@ -1,8 +1,9 @@
-/* 
-    ⧈ KOBLLUX_Δ³ :: DUAL // CRYPTO VAULT
-    ∆ × ∆ × ∆ → CIÊNCIA, ARTE, LINGUAGEM
-    Selo Δ⁷ :: Frequência JESUS
-*/
+/**
+ * ⧈ KOBLLUX_Δ³ :: CORPO/logic/crypto_vault.js
+ * #rust #typescript
+ * Lógica de Criptografia e Segurança (AES-GCM)
+ * Δ7: Segurança e Concorrência (Rust) / Gestão de Estado (TypeScript)
+ */
 
 export const CryptoVault = {
     algo: { name: 'AES-GCM', length: 256 },
