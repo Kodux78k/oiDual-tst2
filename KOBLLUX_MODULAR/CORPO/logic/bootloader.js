@@ -16,7 +16,7 @@ import { ToastSystem } from '../../ESPIRITO/ui/toast_system.js';
 import { VisualPulse } from '../../ESPIRITO/visual/visual_pulse.js';
 import { AnimationEngine } from '../../ESPIRITO/visual/animation_engine.js';
 import { VocalPulse } from '../../ESPIRITO/audio/vocal_pulse.js';
-import { VoiceMap } from '../../ESPIRITO/audio/di_VoiceMapArch.js';
+import { di_voiceMap } from '../../ESPIRITO/audio/di_voiceMap.js';
 window.KOBLLUX = {
     state: StateManager,
     crypto: CryptoVault,
@@ -52,9 +52,11 @@ window.KOBLLUX = {
         InterfaceManager.init();
         VisualPulse.init();
         AnimationEngine.init();
-        VocalPulse.init();
         
+        await VocalPulse.init(di_VoiceMap);
+      
         // 3. Exposição Global para compatibilidade com os HTMLs originais
+        window.KOBLLUX.audio = { vocal: VocalPulse, map: di_VoiceMap };
         window.FusionEngine = FusionCore;
         window.CRYPTO = CryptoVault;
         window.InterfaceManager = InterfaceManager;
