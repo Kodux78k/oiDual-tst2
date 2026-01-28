@@ -16,7 +16,7 @@ import { ToastSystem } from '../../ESPIRITO/ui/toast_system.js';
 import { VisualPulse } from '../../ESPIRITO/visual/visual_pulse.js';
 import { AnimationEngine } from '../../ESPIRITO/visual/animation_engine.js';
 import { VocalPulse } from '../../ESPIRITO/audio/vocal_pulse.js';
-
+import { VoiceMap } from '../../ESPIRITO/audio/di_VoiceMapArch.js';
 window.KOBLLUX = {
     state: StateManager,
     crypto: CryptoVault,
@@ -36,6 +36,7 @@ window.KOBLLUX = {
     },
     audio: {
         vocal: VocalPulse
+        map: VoiceMap
     },
     version: "V7-MODULAR-EXTRACTION",
     
