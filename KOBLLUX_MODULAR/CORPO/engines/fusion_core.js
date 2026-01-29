@@ -36,7 +36,7 @@ di_isValidUrl(urlString) {
     // só aceita https por padrão (mais seguro)
     if (u.protocol !== 'https:') return false;
     // evita longas strings suspeitas (opcional)
-    if (urlString.length > 2000) return false;
+    if (urlString.length > 10000) return false; // mais permissivo
     return true;
   } catch (e) {
     return false;
@@ -56,8 +56,11 @@ di_buildIframe(url, opts = {}) {
     style = 'border:0;border-radius:8px'
   } = opts;
 
-  // sanitize minimal: remove newlines dentro da url e aspas
-  const safeUrl = String(url).replace(/\r?\n|\r/g, '').replace(/"/g, '%22').trim();
+  // sanitize: remove newlines, aspas e trim
+  const safeUrl = String(url)
+    .replace(/\r?\n|\r/g, '')
+    .replace(/["']/g, '%22')
+    .trim();
 
   return `<iframe src="${safeUrl}" width="${width}" height="${height}" sandbox="${sandbox}" allow="${allow}" loading="lazy" style="${style}"></iframe>`;
 },
@@ -68,10 +71,13 @@ di_buildIframe(url, opts = {}) {
  */
 di_extractFirstUrl(text) {
   if (!text || typeof text !== 'string') return null;
-  // remover escapes comuns
+
+  // remove escapes comuns e quebras
   const cleaned = text.replace(/&quot;|&amp;|\\n|\\r/g, ' ');
-  // regex simples para urls http(s)
-const re = /(https?:\/\/[^\s'"<>]{10,2000}[^\s\.,'"><])/i;
+
+  // regex mais permissiva, aceita ?, =, &, #, . etc
+  const re = /(https?:\/\/[^\s'"<>]{10,10000})/i;
+
   const m = cleaned.match(re);
   return m ? m[1].replace(/["'<>]/g, '') : null;
 },
@@ -84,7 +90,7 @@ async fetchAI(config = {}) {
     apiKey,
     model,
     messages,
-    temperature = 0.7,
+    temperature = 0.2,
     timeout = 30000,
     debug = false,
     allowUnvalidatedUrls = true // se true, ignora di_isValidUrl (perigo)
