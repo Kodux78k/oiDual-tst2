@@ -1617,6 +1617,15 @@ modelSelect?.addEventListener('change', e => {
 /* simples parser markdown leve (bold, italic, inline code, links, codeblocks, lists) */
 function mdToHtml(md){
   if(!md) return '';
+
+  // 🔥 BLINDAGEM SUPREMA: Se for HTML/Iframe, devolve cru e intacto.
+  // Isso impede que o regex de Markdown quebre URLs com query strings (?v=...) dentro do src=""
+  if (/<iframe|<div|<script|<video/i.test(md)) {
+    return md;
+  }
+
+  // --- O resto continua igual ---
+  
   // code block ``` ``` 
   md = md.replace(/```([^`]*)```/gs, function(_, code){ return '<pre><code>' + escapeHtml(code) + '</code></pre>'; });
   // inline code `code`
@@ -1630,10 +1639,11 @@ function mdToHtml(md){
   // unordered lists (- or *)
   md = md.replace(/(^|\n)[\-\*]\s+(.+?)(?=\n|$)/g, function(_, pre, item){ return pre + '<li>' + item + '</li>'; });
   md = md.replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>');
-  // paragraphs: remaining single newlines -> <br>, double newlines -> separate paragraphs
+  // paragraphs
   const paras = md.split(/\n{2,}/).map(p => p.trim()).filter(Boolean);
   return paras.map(p => '<p>' + p.replace(/\n/g,'<br>') + '</p>').join('');
 }
+
 
 /* divide texto em grupos de 3 blocos (fallback para sentenças) */
 const splitBlocks = text => {
