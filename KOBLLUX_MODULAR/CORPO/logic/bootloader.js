@@ -63,7 +63,7 @@ window.KOBLLUX = {
     // 4. Exposição global (após inicialização das vozes)
     window.KOBLLUX.audio = {
       vocal: VocalPulse,
-      map: di_VoiceMap
+      map: di_VoiceMap,
     };
 
     // 5. Expor compatibilidade com APIs antigas / globals
